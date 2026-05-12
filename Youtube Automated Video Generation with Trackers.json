@@ -1,0 +1,1698 @@
+{
+  "name": "Youtube Automated Video Generation",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "return {\n  \"json\": {\n    \"audio\": `C:\\\\Users\\\\Paradise Computers\\\\.n8n-files\\\\audios\\\\scene_${$('Loop Over Items').first().json.sceneName}.wav`,\n    \"image\": `C:\\\\Users\\\\Paradise Computers\\\\.n8n-files\\\\images\\\\scene_${$('Loop Over Items').first().json.sceneName}.jpeg`\n  }\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3392,
+        -264
+      ],
+      "id": "3cf5f1d5-38da-4339-ac4f-53077d19a74f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "command": "=.\\ffmpeg\\bin\\ffmpeg.exe -y -loop 1 -i \"{{ $json.image }}\" -i \"{{ $json.audio }}\" -map 0:v:0 -map 1:a:0 -vf \"scale=1280:-2,format=yuv420p\" -c:v libx264 -preset ultrafast -tune stillimage -crf 28 -c:a aac -b:a 128k -af \"apad=0\" -shortest -movflags +faststart \"C:\\Users\\Paradise Computers\\.n8n-files\\scenes\\scene_{{ $('Loop Over Items').item.json.sceneName }}.mp4\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        3616,
+        -264
+      ],
+      "id": "5fe4904d-aefb-45a2-9833-0069a8dd634e",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
+        "formTitle": "Describe your video",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Topic"
+            },
+            {
+              "fieldLabel": "Type",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Video"
+                  },
+                  {
+                    "option": "Short"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Duration (mins)",
+              "fieldType": "number"
+            },
+            {
+              "fieldLabel": "Voice",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Fast"
+                  },
+                  {
+                    "option": "Slow"
+                  },
+                  {
+                    "option": "Story telling"
+                  },
+                  {
+                    "option": "Excited"
+                  },
+                  {
+                    "option": "Music"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -2336,
+        -120
+      ],
+      "id": "bc113a0e-f4e9-4123-92ce-6a54d2abc8ed",
+      "name": "On form submission",
+      "webhookId": "8c5b8894-3184-42dc-bac6-2971dd376721"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Topic: {{ $json.Topic }}\nType: {{ $json.Type }}\nDuration:{{ $json['Duration (mins)'] }} mins\nNarrator Style: {{ $json.Voice }}",
+        "options": {
+          "systemMessage": "You are a highly strict JSON-only structured content generator for an automated AI video creation pipeline.\n\nYour responsibility is to generate cinematic scene breakdowns for short-form and long-form videos.\n\n━━━━━━━━━━━━━━━━━━━━━━\nPRIMARY OBJECTIVE\n━━━━━━━━━━━━━━━━━━━━━━\n\nGenerate structured scene data that can be directly consumed by automation systems, TTS systems, stock video retrieval systems, and AI video generators.\n\nYou MUST output ONLY valid JSON.\n\nDo NOT output markdown.\nDo NOT explain anything.\nDo NOT include comments.\nDo NOT wrap JSON in code blocks.\nDo NOT include intro or outro text.\n\n━━━━━━━━━━━━━━━━━━━━━━\nOUTPUT FORMAT (STRICT)\n━━━━━━━━━━━━━━━━━━━━━━\n\nThe JSON MUST follow this exact structure:\n\n{\n\"hook\": {\n\"video_prompt\": string,\n\"transcript\": string,\n\"clip_query\": string\n},\n\"scene1\": {\n\"video_prompt\": string,\n\"transcript\": string,\n\"clip_query\": string\n},\n......,\n\"end\": {\n\"video_prompt\": string,\n\"transcript\": string,\n\"clip_query\": string\n}\n}\n\n━━━━━━━━━━━━━━━━━━━━━━\nFIELD DEFINITIONS\n━━━━━━━━━━━━━━━━━━━━━━\n\n1. video_prompt\n\n* Cinematic visual description for AI video/image generation\n* Must describe:\n\n  * environment\n  * subject\n  * motion\n  * lighting\n  * atmosphere\n  * camera angle or movement when useful\n* Must be visually descriptive\n* Must NOT contain dialogue\n* Must NOT contain shot numbers\n* Must NOT contain markdown\n* Keep concise but detailed\n\nGOOD EXAMPLE:\n\"A lone astronaut walking through a dark futuristic corridor with red emergency lights flickering, cinematic atmosphere, slow camera dolly\"\n\nBAD EXAMPLE:\n\"Scene where guy talks about motivation\"\n\n2. transcript\n\n* Spoken narration/dialogue for the scene\n* Natural spoken language\n* Engaging and concise\n* Must match visuals\n* Avoid robotic phrasing\n* No stage directions\n* No markdown\n\n3. clip_query\n\n* Short keyword-based search query\n* Intended for stock footage search engines\n* Lowercase preferred\n* No punctuation unless necessary\n* 3–8 keywords ideal\n\nGOOD EXAMPLE:\n\"cyberpunk city\"\n\"busy office workers laptop\"\n\"mountain sunrise drone\"\n\nBAD EXAMPLE:\n\"This is a cinematic scene about success\"\n\"empty plate satisfied smile\" (better is \"empty plate\")\n\n━━━━━━━━━━━━━━━━━━━━━━\nSCENE FLOW RULES\n━━━━━━━━━━━━━━━━━━━━━━\n\n* hook should immediately grab attention\n* end concludes naturally with summary, emotion, reflection, or call-to-action\n\nScenes must feel connected and sequential.\n\n━━━━━━━━━━━━━━━━━━━━━━\nHOOK RULES\n━━━━━━━━━━━━━━━━━━━━━━\n\nThe hook MUST:\n\n* create curiosity\n* create tension, surprise, urgency, or emotional intrigue\n* feel impactful within first seconds\n* avoid generic openings\n\nGOOD:\n\"You use this every day, but almost nobody knows how dangerous it actually is.\"\n\nBAD:\n\"Today we are going to talk about phones.\"\n\n━━━━━━━━━━━━━━━━━━━━━━\nQUALITY RULES\n━━━━━━━━━━━━━━━━━━━━━━\n\n* Make visuals cinematic and vivid\n* Make transcripts emotionally engaging\n* Avoid repetitive wording\n* Avoid generic scene descriptions\n* Ensure transcript and visuals align\n* Keep pacing dynamic\n* Prefer concrete imagery over abstract wording\n\n━━━━━━━━━━━━━━━━━━━━━━\nSTRICT VALIDATION RULES\n━━━━━━━━━━━━━━━━━━━━━━\n\n* Output ONLY valid JSON\n* No markdown\n* No comments\n* No trailing commas\n* No additional keys\n* No missing keys\n* No null values\n* No arrays unless explicitly requested\n* Every scene object MUST contain:\n\n  * video_prompt\n  * transcript\n  * clip_query\n\n━━━━━━━━━━━━━━━━━━━━━━\nFAIL CONDITIONS\n━━━━━━━━━━━━━━━━━━━━━━\n\nThe response is INVALID if:\n\n* Any text exists outside JSON\n* JSON is malformed\n* Any required field is missing\n* Extra keys are added\n* clip_query is too long or sentence-like\n* video_prompt is vague\n* transcript sounds robotic or unrelated\n* Scenes do not logically connect\n\n━━━━━━━━━━━━━━━━━━━━━━\nFINAL INSTRUCTION\n━━━━━━━━━━━━━━━━━━━━━━\n\nReturn ONLY the JSON object and nothing else.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -2112,
+        -120
+      ],
+      "id": "d66a406d-f062-41ee-9b03-046cbfeaa4d8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "const scenes = $input.first().json;\nconst sceneArray = [];\n\nfor (const key in scenes) {\n  sceneArray.push({\n    sceneName: key,\n    ...scenes[key],\n    tracker_path: `C:\\\\Users\\\\Paradise Computers\\\\.n8n-files\\\\scene_${key}.json`\n  });\n}\n\nreturn sceneArray;"
+      },
+      "id": "4f2c2771-b49f-4163-8a7b-68941eb7af3c",
+      "name": "Convert Scenes to Array",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1536,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -2040,
+        104
+      ],
+      "id": "2fe736ca-1e29-4b8e-9442-1e0b41aad4a4",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "U1Vw9QXwrTQjlH32",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1312,
+        -120
+      ],
+      "id": "389e41f0-1432-46eb-9bc8-677ac6b31eaa",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.photos[0].src.landscape }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2272,
+        -264
+      ],
+      "id": "216d7a8a-8b4a-453c-83ba-90e08690d15f",
+      "name": "Download Image"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.pexels.com/v1/search?query=\"{{ $('Loop Over Items').item.json.clip_query }}\"&per_page=1&orientation={{ (($('On form submission').item.json.Type) == \"Video\") ? \"landscape\" : \"portrait\" }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2048,
+        -264
+      ],
+      "id": "482f1add-9de1-4c36-933d-12355cc22622",
+      "name": "Fetch Image",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "fMxScCY19y0jh2Fy",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/speech",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"model\": \"canopylabs/orpheus-v1-english\", \"input\": \"{{ $('Loop Over Items').item.json.transcript }}\", \"voice\": \"austin\", \"response_format\": \"wav\" }",
+        "options": {}
+      },
+      "id": "dc8200b9-9fa9-43bc-bee1-a22092a99a5d",
+      "name": "Generate Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -2336,
+        -656
+      ],
+      "retryOnFail": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4HBr9TaeQGMR94hE",
+          "name": "Groq-local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://yourvoic.com/api/v1/tts/generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"text\": \"{{ $('Loop Over Items').item.json.transcript }}\",\n    \"voice\": \"Jacob\",\n    \"model\": \"rapid-flash\",\n    \"format\": \"wav\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        928,
+        -264
+      ],
+      "id": "2c8a823f-cd45-40ba-8eab-f520e444f9ad",
+      "name": "Generated Audio [Yourvoic]",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "o2q4xj2OGprR7o2Z",
+          "name": "YourVoic Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "=.\\ffmpeg\\bin\\ffmpeg.exe -y -fflags +shortest -loop 1 -framerate 1 -i \"{{ $json.imageUrl }}\" -i \"{{ $json.audioUrl }}\" -map 0:v:0 -map 1:a:0 -vf \"scale=1280:-2,format=yuv420p\" -c:v libx264 -preset ultrafast -tune stillimage -crf 28 -r 10 -c:a aac -b:a 128k -shortest -movflags +faststart \"C:\\Users\\Paradise Computers\\.n8n-files\\scene_{{ $('Loop Over Items').item.json.sceneName }}.mp4\"\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -2336,
+        208
+      ],
+      "id": "22cec682-c5bc-4219-8aa8-e3aea59221a5",
+      "name": "Ffmpeg [TEST]"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4288,
+        -120
+      ],
+      "id": "f6fc8118-bdd3-4a8e-926d-871846bf50ee",
+      "name": "Wait",
+      "webhookId": "7db57e06-f4a8-40b0-b315-27dbd61f514b"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=C:\\Users\\Paradise Computers\\.n8n-files\\audios\\scene_{{ $('Loop Over Items').item.json.sceneName }}.wav",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1152,
+        -264
+      ],
+      "id": "0039b004-29c4-4922-9a16-4b820fb7f977",
+      "name": "Save Audio"
+    },
+    {
+      "parameters": {
+        "jsCode": "let content = {\"audio_done\": false, \"image_done\": false, \"video_done\": false, \"completed\": false};\nreturn {\n  json: \n    content\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        -120
+      ],
+      "id": "a8876b9c-6266-4d3a-939f-daa692444173",
+      "name": "Prepare Data"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "binaryPropertyName": "content",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -416,
+        -120
+      ],
+      "id": "d45ef8bc-a01f-4288-af68-f81522826f78",
+      "name": "Convert to Json Binary"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=C:\\Users\\Paradise Computers\\.n8n-files\\scene_{{ $('Loop Over Items').item.json.sceneName }}.json",
+        "dataPropertyName": "content",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -192,
+        -120
+      ],
+      "id": "a1af0dee-7588-4f71-8f87-134972a99274",
+      "name": "Create Tracker File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=C:\\Users\\Paradise Computers\\.n8n-files\\images\\scene_{{ $('Loop Over Items').item.json.sceneName }}.jpeg",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        2496,
+        -264
+      ],
+      "id": "3770adec-2585-4a30-8bef-27a0e5556c12",
+      "name": "Save Image"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8npmx3eFgmj8DDz4",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8npmx3eFgmj8DDz4",
+          "cachedResultName": "My Sub-Workflow 1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "checking?": true,
+            "field": "completed",
+            "value": "true",
+            "trackerPath": "={{ $('Loop Over Items').item.json.tracker_path }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "trackerPath",
+              "displayName": "trackerPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "field",
+              "displayName": "field",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "checking?",
+              "displayName": "checking?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        32,
+        -192
+      ],
+      "id": "063a26f9-a791-4bfa-906e-37687e3e5e64",
+      "name": "Check key"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8npmx3eFgmj8DDz4",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8npmx3eFgmj8DDz4",
+          "cachedResultName": "My Sub-Workflow 1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "checking?": true,
+            "field": "audio_done",
+            "value": "true",
+            "trackerPath": "={{ $('Loop Over Items').item.json.tracker_path }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "trackerPath",
+              "displayName": "trackerPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "field",
+              "displayName": "field",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "checking?",
+              "displayName": "checking?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        -192
+      ],
+      "id": "87af23e9-bd07-4533-b10c-9527d737abc6",
+      "name": "Check For Audio"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8npmx3eFgmj8DDz4",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8npmx3eFgmj8DDz4",
+          "cachedResultName": "My Sub-Workflow 1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "checking?": true,
+            "field": "image_done",
+            "value": "true",
+            "trackerPath": "={{ $('Loop Over Items').item.json.tracker_path }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "trackerPath",
+              "displayName": "trackerPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "field",
+              "displayName": "field",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "checking?",
+              "displayName": "checking?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1600,
+        -192
+      ],
+      "id": "0b90305e-2ee4-4dda-91ec-7b484e1faba1",
+      "name": "Check For Image"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8npmx3eFgmj8DDz4",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8npmx3eFgmj8DDz4",
+          "cachedResultName": "My Sub-Workflow 1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "checking?": true,
+            "field": "video_done",
+            "value": "true",
+            "trackerPath": "={{ $('Loop Over Items').item.json.tracker_path }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "trackerPath",
+              "displayName": "trackerPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "field",
+              "displayName": "field",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "checking?",
+              "displayName": "checking?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2944,
+        -192
+      ],
+      "id": "4c95b15e-0b17-44c4-bc28-6dbe03bfd68b",
+      "name": "Check For Video"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b9413a4b-2d57-48cc-9514-050435877060",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -864,
+        -192
+      ],
+      "id": "f7f5b49b-7834-40cc-a017-941e9114eb27",
+      "name": "Tracker File Exists?",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3afe2803-a3d7-4ab6-bc3d-f7a48ae56a2d",
+              "leftValue": "={{ $json.response }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        -192
+      ],
+      "id": "119ed5b5-bcce-4e90-8510-d7a27785ebd5",
+      "name": "Audio is not done"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f4b7e27e-5f37-40bc-89c5-efadc7079df8",
+              "leftValue": "={{ $json.response }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1824,
+        -192
+      ],
+      "id": "abc02c5e-36ab-469c-aeb3-4b14592f9b3f",
+      "name": "Image is not Done"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5c13bcbd-c5db-443d-96ca-f5b9b73d196b",
+              "leftValue": "={{ $json.response }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3168,
+        -192
+      ],
+      "id": "33a7bc67-0461-4a7d-b82e-542995cd824d",
+      "name": "Video is not Done"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8npmx3eFgmj8DDz4",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8npmx3eFgmj8DDz4",
+          "cachedResultName": "My Sub-Workflow 1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "checking?": false,
+            "trackerPath": "={{ $('Loop Over Items').item.json.tracker_path }}",
+            "field": "audio_done",
+            "value": "true"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "trackerPath",
+              "displayName": "trackerPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "field",
+              "displayName": "field",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "checking?",
+              "displayName": "checking?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1376,
+        -264
+      ],
+      "id": "74317ece-f79f-4806-99fb-d3be02edd1f9",
+      "name": "Set Audio"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8npmx3eFgmj8DDz4",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8npmx3eFgmj8DDz4",
+          "cachedResultName": "My Sub-Workflow 1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "checking?": false,
+            "trackerPath": "={{ $('Loop Over Items').item.json.tracker_path }}",
+            "field": "image_done",
+            "value": "true"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "trackerPath",
+              "displayName": "trackerPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "field",
+              "displayName": "field",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "checking?",
+              "displayName": "checking?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean"
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2720,
+        -264
+      ],
+      "id": "f98669d4-7a46-4159-bf18-cd136382c9c0",
+      "name": "Set Image"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a75a4750-59dc-400a-a87c-fe29888f1241",
+              "leftValue": "={{ $json.response }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        256,
+        -192
+      ],
+      "id": "684e8077-0cd8-428f-a326-ba235c1e42a1",
+      "name": "Is not completed"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        -2336,
+        432
+      ],
+      "id": "d237d993-958c-4de2-834b-4dcf5e114297",
+      "name": "Upload a video",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "nyREO2GXukaakFkS",
+          "name": "YouTube account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2336,
+        656
+      ],
+      "id": "d2ee855c-40a9-41ab-a819-545d3bf3b577",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "C:\\Users\\Paradise Computers\\.n8n-files\\videos.txt",
+        "dataPropertyName": "=videos_list",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -2336,
+        880
+      ],
+      "id": "ac9f1527-6fc3-49dc-9ef3-f79030989839",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "C:\\Users\\Paradise Computers\\.n8n-files\\videos.txt",
+        "dataPropertyName": "=videos_list",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -640,
+        -432
+      ],
+      "id": "dafd3183-6f1f-4777-b6ac-ce6989e3d31a",
+      "name": "Save the Video List"
+    },
+    {
+      "parameters": {
+        "command": "=.\\ffmpeg\\bin\\ffmpeg.exe -y -f concat -safe 0 -i \"C:\\Users\\Paradise Computers\\.n8n-files\\videos.txt\" -c copy -movflags +faststart \"C:\\Users\\Paradise Computers\\.n8n-files\\Final_Video_{{$('On form submission').item.json.Topic.replace(/[<>:\\\"\\/\\\\|?*]/g, '_')}}.mp4\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        -432
+      ],
+      "id": "afdd9722-e7e1-47f2-9b68-caaa21a0e1a9",
+      "name": "Convert To Video"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('Convert String To JSON').first().json;\n\nconst basePath = 'C:\\\\Users\\\\Paradise Computers\\\\.n8n-files';\n\nconst paths = Object.keys(data).map(sceneName => {\n  const safeSceneName = sceneName\n    .replace(/[<>:\"/\\\\|?*]/g, '_')\n    .trim();\n\n  return `${basePath}\\\\scenes\\\\scene_${safeSceneName}.mp4`;\n});\n\nconst content = paths\n  .map(path => `file '${path.replace(/\\\\/g, '/')}'`)\n  .join('\\n');\n\nreturn [\n  {\n    json: {\n      content\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1088,
+        -432
+      ],
+      "id": "a155a3a9-1345-4752-8bbe-0c4c8cd1e442",
+      "name": "Convert Video List to String"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "content",
+        "binaryPropertyName": "videos_list",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -864,
+        -432
+      ],
+      "id": "d867c1cf-c460-4b10-a1fc-41f2290f38e6",
+      "name": "Convert to Binary"
+    },
+    {
+      "parameters": {
+        "command": "=if exist \"{{ $json.tracker_path }}\" (echo true) else (echo false)"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        -192
+      ],
+      "id": "8fa32afc-0219-4215-a4fb-6ff805a00ab3",
+      "name": "Retrieve Tracker Path"
+    },
+    {
+      "parameters": {
+        "jsCode": "return JSON.parse($input.first().json.output)"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1760,
+        -120
+      ],
+      "id": "1f343413-43f2-45ff-8541-ad9ec4896cc3",
+      "name": "Convert String To JSON"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8npmx3eFgmj8DDz4",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8npmx3eFgmj8DDz4",
+          "cachedResultName": "My Sub-Workflow 1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "checking?": false,
+            "trackerPath": "={{ $('Loop Over Items').item.json.tracker_path }}",
+            "field": "video_done",
+            "value": "true"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "trackerPath",
+              "displayName": "trackerPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "field",
+              "displayName": "field",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "checking?",
+              "displayName": "checking?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3840,
+        -264
+      ],
+      "id": "7bf339c6-18eb-43de-9451-94424aa7cc49",
+      "name": "Set Video"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8npmx3eFgmj8DDz4",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8npmx3eFgmj8DDz4",
+          "cachedResultName": "My Sub-Workflow 1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "checking?": false,
+            "field": "completed",
+            "value": "true",
+            "trackerPath": "={{ $('Loop Over Items').item.json.tracker_path }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "trackerPath",
+              "displayName": "trackerPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "field",
+              "displayName": "field",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "checking?",
+              "displayName": "checking?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        4064,
+        -192
+      ],
+      "id": "8192492d-d457-4ff2-86f4-291e145a2362",
+      "name": "Set To Completed"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command": {
+      "main": [
+        [
+          {
+            "node": "Set Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Convert String To JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Scenes to Array": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Convert Video List to String",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retrieve Tracker Path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Image": {
+      "main": [
+        [
+          {
+            "node": "Save Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Image": {
+      "main": [
+        [
+          {
+            "node": "Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Audio": {
+      "main": [
+        []
+      ]
+    },
+    "Generated Audio [Yourvoic]": {
+      "main": [
+        [
+          {
+            "node": "Save Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Audio": {
+      "main": [
+        [
+          {
+            "node": "Set Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data": {
+      "main": [
+        [
+          {
+            "node": "Convert to Json Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to Json Binary": {
+      "main": [
+        [
+          {
+            "node": "Create Tracker File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Tracker File": {
+      "main": [
+        [
+          {
+            "node": "Check key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Image": {
+      "main": [
+        [
+          {
+            "node": "Set Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check key": {
+      "main": [
+        [
+          {
+            "node": "Is not completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check For Audio": {
+      "main": [
+        [
+          {
+            "node": "Audio is not done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check For Image": {
+      "main": [
+        [
+          {
+            "node": "Image is not Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check For Video": {
+      "main": [
+        [
+          {
+            "node": "Video is not Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tracker File Exists?": {
+      "main": [
+        [
+          {
+            "node": "Check key",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audio is not done": {
+      "main": [
+        [
+          {
+            "node": "Generated Audio [Yourvoic]",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check For Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image is not Done": {
+      "main": [
+        [
+          {
+            "node": "Fetch Image",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check For Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Video is not Done": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set To Completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Audio": {
+      "main": [
+        [
+          {
+            "node": "Check For Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Image": {
+      "main": [
+        [
+          {
+            "node": "Check For Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is not completed": {
+      "main": [
+        [
+          {
+            "node": "Check For Audio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload a video": {
+      "main": [
+        []
+      ]
+    },
+    "Save the Video List": {
+      "main": [
+        [
+          {
+            "node": "Convert To Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert To Video": {
+      "main": [
+        []
+      ]
+    },
+    "Convert Video List to String": {
+      "main": [
+        [
+          {
+            "node": "Convert to Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to Binary": {
+      "main": [
+        [
+          {
+            "node": "Save the Video List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Tracker Path": {
+      "main": [
+        [
+          {
+            "node": "Tracker File Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert String To JSON": {
+      "main": [
+        [
+          {
+            "node": "Convert Scenes to Array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Video": {
+      "main": [
+        [
+          {
+            "node": "Set To Completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set To Completed": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "87ca51e6-a427-4a06-8266-3d176bbf8c79",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c40d47d2d465b37b48cd58eaf99012d35638d2cfdf0d885509c33be84c71c191"
+  },
+  "id": "RxVizf2bp4KPgp0o",
+  "tags": []
+}

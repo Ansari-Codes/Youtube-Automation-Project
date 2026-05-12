@@ -1,0 +1,275 @@
+{
+  "name": "My Sub-Workflow 1",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "trackerPath"
+            },
+            {
+              "name": "field"
+            },
+            {
+              "name": "value"
+            },
+            {
+              "name": "checking?",
+              "type": "boolean"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -224,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "binaryPropertyName": "content",
+        "options": {
+          "format": true
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        400
+      ],
+      "id": "db9fb82f-fe9e-4455-9aa2-4ae1046f0590",
+      "name": "Convert to Json Binary1"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.trackerPath }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        304
+      ],
+      "id": "42c810bd-6034-46b2-b9b4-7b5bb294c4f4",
+      "name": "Read Json File"
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        304
+      ],
+      "id": "9182a232-9d10-494f-836b-7e20bc84fbb8",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "35624eb1-a221-4ff2-9660-b2d1cccb7d4e",
+              "leftValue": "={{ Boolean($('When Executed by Another Workflow').item.json['checking?']) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        304
+      ],
+      "id": "daa3e5e9-773e-40d7-a157-1966c08a8b7f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "let content = $('Extract from File1').first().json.data[0]\nlet field = $('When Executed by Another Workflow').first().json.field\nlet value = Boolean($('When Executed by Another Workflow').first().json.value)\nlet prop;\nif (field === \"audio_done\"){\n  prop = content.audio_done\n}\nelse if (field === \"image_done\"){\n  prop = content.image_done\n}\nelse if (field === \"video_done\"){\n  prop = content.video_done\n} else {\n  prop = content.completed\n}\nreturn { \n  response: prop === value\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        208
+      ],
+      "id": "948ad91e-fe10-4134-abe3-7495a6d2899e",
+      "name": "Construct Response"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.first().json.data[0];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        304
+      ],
+      "id": "d2176cfd-8191-4e7c-a804-9c804350701f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('When Executed by Another Workflow').item.json.trackerPath }}",
+        "dataPropertyName": "content",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1344,
+        400
+      ],
+      "id": "316c1531-901f-40bc-84bf-ecf0cc33f3c5",
+      "name": "Update JSON file"
+    },
+    {
+      "parameters": {
+        "jsCode": "let data = $input.first().json\n\nconst field = $('When Executed by Another Workflow').first().json.field\n\nconst rawValue = $('When Executed by Another Workflow').first().json.value\n\nconst value = (rawValue === true || rawValue === \"true\")\n\ndata[field] = value\n\nreturn [\n  data\n]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        400
+      ],
+      "id": "df17172a-527b-4d82-ab9e-bd1e8adf717c",
+      "name": "Code in JavaScript1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Read Json File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to Json Binary1": {
+      "main": [
+        [
+          {
+            "node": "Update JSON file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Json File": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Construct Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construct Response": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Convert to Json Binary1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b3baec55-4776-4c49-8dde-326d432be7fa",
+  "meta": {
+    "instanceId": "c40d47d2d465b37b48cd58eaf99012d35638d2cfdf0d885509c33be84c71c191"
+  },
+  "id": "8npmx3eFgmj8DDz4",
+  "tags": []
+}

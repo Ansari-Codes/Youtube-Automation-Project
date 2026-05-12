@@ -1,0 +1,711 @@
+{
+  "name": "My workflow 3",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "59b7c612-7176-48d5-93e2-f703b93c1a78",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1184,
+        -208
+      ],
+      "id": "50ee185c-5fc4-4f27-9550-25c18613984b",
+      "name": "Webhook",
+      "webhookId": "59b7c612-7176-48d5-93e2-f703b93c1a78"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.action }}",
+                    "rightValue": "avail_check",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "741ed19c-35aa-4f02-b047-93bd274b3425"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Availability check"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "822635ef-b636-4447-866b-033232e032c5",
+                    "leftValue": "={{ $json.output.action }}",
+                    "rightValue": "appoint",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Appointment Creation"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "26508321-140d-4c8f-9a52-6c88a7b0eae8",
+                    "leftValue": "={{ $json.output.action }}",
+                    "rightValue": "general",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "General"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -272,
+        -224
+      ],
+      "id": "d930d031-163e-4891-8af6-dc72f918ec92",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to know the \"current time\".",
+        "jsCode": "return new Date().toISOString()"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        -704,
+        32
+      ],
+      "id": "af49e13f-5c79-440a-860e-6e1f84183d88",
+      "name": "Code Tool"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        32
+      ],
+      "id": "0d5027ec-be8c-4741-a901-11decb688f97",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "TNhXGzS6fgg3bJOb",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=id-{{ $now }}{{ $execution.id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -832,
+        32
+      ],
+      "id": "a38cb45e-9ddf-4d6e-91e3-838751e86120",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "resource": "calendar",
+        "calendar": {
+          "__rl": true,
+          "value": "c731e9e8e8c44cb79f12c7db6db560c997135d6be41819a4b42d7cbdc1032b74@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Appointments"
+        },
+        "timeMin": "={{ new Date($('Convert to Json').item.json.output.details.Time) }}",
+        "timeMax": "={{ new Date(new Date($('Convert to Json').item.json.output.details.Time).getTime() + 30 * 60000) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        -48,
+        -304
+      ],
+      "id": "cf729774-6b37-4ba0-a549-5cdbaa4501f8",
+      "name": "Is Available?",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "FTYYvi8g9AAONyfR",
+          "name": "Google Calendar OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $('Convert to Json').item.json.output.response }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -48,
+        -112
+      ],
+      "id": "11ee9660-bfc8-45e2-9c40-d59b48fa2a7f",
+      "name": "General Response"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\"output\": JSON.parse($input.first().json.output)};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        -208
+      ],
+      "id": "5bc37181-19b2-4279-b5e8-5d7c7467e124",
+      "name": "Convert to Json"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "18b5bbc3-4ff4-4e87-b268-abc4e4b46c93",
+              "leftValue": "={{ $('Convert to Json').item.json.output.action }}",
+              "rightValue": "appoint",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        176,
+        -304
+      ],
+      "id": "f4284ab2-7a2e-4a90-992a-8146a2bb29bd",
+      "name": "Is an appointment?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "18b5bbc3-4ff4-4e87-b268-abc4e4b46c93",
+              "leftValue": "={{ $json.available }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        400,
+        -224
+      ],
+      "id": "5d37fbdc-9a7e-4676-bec7-8edc99a84dfa",
+      "name": "Is the slot available?"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Convert to Json').item.json.output.details.Email }}",
+        "subject": "={{ $json.output.subject }}",
+        "message": "={{ $json.output.body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        -112
+      ],
+      "id": "9c349976-dcc2-498e-94ee-c1b4ee6a74b1",
+      "name": "Email this if slot created!",
+      "webhookId": "319b8b67-e501-4613-866b-d1aa6ee4ad38",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5aMrAv2CY2YYoaIY",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "c731e9e8e8c44cb79f12c7db6db560c997135d6be41819a4b42d7cbdc1032b74@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Appointments"
+        },
+        "start": "={{ new Date($('Convert to Json').item.json.output.details.Time) }}",
+        "end": "={{ new Date(new Date($('Convert to Json').item.json.output.details.Time).getTime() + 30 * 60000) }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1200,
+        -112
+      ],
+      "id": "56d3b0c1-26d4-46f8-8c01-d976344a5662",
+      "name": "Create event in Appointments Calender",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "FTYYvi8g9AAONyfR",
+          "name": "Google Calendar OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const action = $('Convert to Json').first().json.output.action;\nconst details = $('Convert to Json').first().json.output.details;\nconst available = $('Is Available?').first().json.available;\n\nlet response = \"\";\n\nif (action === \"appoint\") {\n  if (!details.Name || !details.Email || !details.Time) {\n    const missing = [];\n    if (!details.Name) missing.push(\"Name\");\n    if (!details.Email) missing.push(\"Email\");\n    if (!details.Time) missing.push(\"Time\");\n\n    response = `Provide missing details: ${missing.join(\", \")}.`;\n  } else if (!available) {\n    response = \"The selected time is not available. Choose another time.\";\n  } else {\n    response = `Your appointment has been scheduled for ${details.Time}.`;\n  }\n}\n\nelse if (action === \"avail_check\") {\n  if (!details.Time) {\n    response = \"Specify a time to check availability.\";\n  } else if (available) {\n    response = \"The selected time is available.\";\n  } else {\n    response = \"The selected time is not available.\";\n  }\n}\n\nreturn [{ response }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        -352
+      ],
+      "id": "6ad783e3-edec-440b-96d4-2c8bf46376f0",
+      "name": "Develop Response"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2000,
+        -352
+      ],
+      "id": "c4f1c3fb-e150-4ee5-8b35-d5bab790f07f",
+      "name": "Final Non-general Response"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1728,
+        -128
+      ],
+      "id": "eae21b80-25dd-4809-87db-ecad32a63643",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "TNhXGzS6fgg3bJOb",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        640,
+        128
+      ],
+      "id": "ea08d1cf-bafa-4152-9cb0-2119e6999b31",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "TNhXGzS6fgg3bJOb",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"subject\": \"\", \n  \"body\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        768,
+        128
+      ],
+      "id": "f6e131ac-80a7-4f9f-9feb-5806cafc098f",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Convert to Json').item.json.output.details }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You have to write the email address based on given data. The email is about telling that user's appointment (given in data) has been scheduled at some time (give in data) with Dr. Adrian Cole of 30 minutes. And he have to arrive at Graveyard Hospital 10-5 minute before. Create the email. You can use icons and emojies. Also, your response:\nYOUR RESPONSE SHOULD BE JSON TEXT. NO OTHER TEXT JUST JSON TEXT. Like this:\n{\"subject\": \"\", \"body\": \"\"}\n- Your response body should be valid html.\n- Don't hallucinate or add extra details."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        624,
+        -112
+      ],
+      "id": "c1678681-4379-4db8-baae-a915f536fea4",
+      "name": "Mail Writer",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=The original message: {{ $('Webhook').item.json.query.message }}\nThe action is performed and here is the result: {{ $json.response }}\n\nWhere data given by user is: {{ $('Convert to Json').item.json.output.details }}",
+        "options": {
+          "systemMessage": "You are “Dr. Assist – Preprocessor Agent”, an intelligent medical appointment routing system.\n\nYou are NOT a medical advisor and MUST NOT provide diagnosis or treatment.\n- Do NOT guess or infer missing values\n- Do NOT fabricate data\n\n━━━━━━━━━━━━━━━━━━━━━━\nDOCTOR CONTEXT\n━━━━━━━━━━━━━━━━━━━━━━\n\n👨‍⚕️ Dr. Adrian Cole  \nSpecialty: Cardiothoracic Surgeon  \nQualifications: MBBS, FCPS (Surgery), FRCS  \nExperience: 15+ years  \nRole: Senior Consultant Surgeon  \n\nServices:\n- Heart surgery consultation\n- Pre-surgical evaluation\n- Post-operative follow-up scheduling\n- Emergency surgical triage (consultation only)\n\nClinic Timings:\n- Monday–Friday: 10:00–16:00\n- Saturday: 10:00–13:00\n- Sunday: Closed\n\nYour job to do:\nYou have to expand the single line sentence to some detailed sentence, like 2-3 sentences or more so user feels like someone is talking behind. You have to reinterpret the given result into user friendly response.\n\n- If the result is about checking and slot is available you can ask user to give their name, email to book it.\n- If the appointment is created, you can just tell user that just to inform, this scheduling email is also sent to you as email.\n- If slot is not available, you can say that slot is not available and try a different one etc...\n- Don't greet like hello....However, you can use interjections depending on context."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1648,
+        -352
+      ],
+      "id": "b264dd79-d829-42e5-bbf7-d3a7f814722a",
+      "name": "Final Respones maker",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query.message }}",
+        "options": {
+          "systemMessage": "You are “Dr. Assist – Preprocessor Agent”, an intelligent medical appointment routing system.\n\nYou are NOT a medical advisor and MUST NOT provide diagnosis or treatment.\n\nYour ONLY responsibility is to analyze user input.\nYou MUST return JSON as plain text only.\nDO NOT call any tools.\nDO NOT trigger tool_calls.\nDO NOT use function calling.\n\n━━━━━━━━━━━━━━━━━━━━━━\nOUTPUT FORMAT (STRICT JSON ONLY)\n━━━━━━━━━━━━━━━━━━━━━━\nYou MUST ALWAYS return valid JSON. No explanations, no extra text.\n\n{\n  \"action\": \"appoint\" | \"avail_check\" | \"general\",\n  \"details\": {\n    \"Name\": \"\",\n    \"Time\": \"\",\n    \"Email\": \"\"\n  },\n  \"response\": \"\"\n}\n\n━━━━━━━━━━━━━━━━━━━━━━\nACTION DEFINITIONS\n━━━━━━━━━━━━━━━━━━━━━━\n\n1. \"appoint\"\n- User clearly wants to book/schedule an appointment\n- REQUIRED: Name, Time, Email\n- If ALL are present → response = \"\"\n- If ANY are missing → action MUST become \"general\" and response MUST clearly request missing fields\n\n2. \"avail_check\"\n- User is asking if a time slot is available\n- If time is provided → keep action \"avail_check\", response = \"\"\n- If time is missing → action MUST become \"general\" and response MUST ask for the specific time\n- If user asks for \"current time\" → you MAY fetch system time (no arguments)\n\n3. \"general\"\n- Greetings, unclear intent, or any non-booking query\n- Missing information cases\n- Always use \"response\" to guide the user\n\n━━━━━━━━━━━━━━━━━━━━━━\nDETAIL EXTRACTION RULES\n━━━━━━━━━━━━━━━━━━━━━━\n- Name → extract only if explicitly mentioned, else \"\"\n- Email → extract only if explicitly mentioned, else \"\"\n- Time → extract and convert to ISO format (YYYY-MM-DDTHH:MM) if possible, else \"\"\n\n- Do NOT guess or infer missing values\n- Do NOT fabricate data\n\n━━━━━━━━━━━━━━━━━━━━━━\nRESPONSE RULE (CRITICAL)\n━━━━━━━━━━━━━━━━━━━━━━\n\n\"response\" MUST be used ONLY when:\n- action == \"general\"\n- OR required data is missing\n\nOtherwise:\n- response MUST be exactly \"\"\n\n━━━━━━━━━━━━━━━━━━━━━━\nDOCTOR CONTEXT\n━━━━━━━━━━━━━━━━━━━━━━\n\n👨‍⚕️ Dr. Adrian Cole  \nSpecialty: Cardiothoracic Surgeon  \nQualifications: MBBS, FCPS (Surgery), FRCS  \nExperience: 15+ years  \nRole: Senior Consultant Surgeon  \n\nServices:\n- Heart surgery consultation\n- Pre-surgical evaluation\n- Post-operative follow-up scheduling\n- Emergency surgical triage (consultation only)\n\nClinic Timings:\n- Monday–Friday: 10:00–16:00\n- Saturday: 10:00–13:00\n- Sunday: Closed\n\n━━━━━━━━━━━━━━━━━━━━━━\nSTRICT ENFORCEMENT RULES\n━━━━━━━━━━━━━━━━━━━━━━\n- NEVER provide medical advice\n- NEVER confirm appointments\n- NEVER assume missing information\n- NEVER output anything except JSON\n- NEVER include explanations\n\n━━━━━━━━━━━━━━━━━━━━━━\nTOOL USAGE RULE\n━━━━━━━━━━━━━━━━━━━━━━\n- You are NOT allowed to call ANY tools\n- EXCEPTION: You MAY call a tool ONLY to get current datetime\n- When calling it, pass NO arguments\n- Do NOT call any other tools under any circumstance\n\nSYSTEM OVERRIDE:\nReturn output as raw JSON string.\nThis is NOT a tool call.\nDo NOT return tool_calls.\nDo NOT return function calls.\nIf you attempt tool calling, the output is invalid."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -912,
+        -208
+      ],
+      "id": "8e50f551-0318-4cca-b589-e7cc6deab4e4",
+      "name": "Classifier",
+      "notesInFlow": false
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Is Available?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Is Available?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "General Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Classifier",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Classifier",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Available?": {
+      "main": [
+        [
+          {
+            "node": "Is an appointment?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to Json": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is an appointment?": {
+      "main": [
+        [
+          {
+            "node": "Is the slot available?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Develop Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is the slot available?": {
+      "main": [
+        [
+          {
+            "node": "Mail Writer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Develop Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email this if slot created!": {
+      "main": [
+        [
+          {
+            "node": "Create event in Appointments Calender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create event in Appointments Calender": {
+      "main": [
+        [
+          {
+            "node": "Develop Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Develop Response": {
+      "main": [
+        [
+          {
+            "node": "Final Respones maker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Final Respones maker",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Mail Writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Mail Writer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mail Writer": {
+      "main": [
+        [
+          {
+            "node": "Email this if slot created!",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Respones maker": {
+      "main": [
+        [
+          {
+            "node": "Final Non-general Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classifier": {
+      "main": [
+        [
+          {
+            "node": "Convert to Json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "0014a2fe-e343-49b5-b4b1-9f9875374724",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "02c34c568ba02882c471c6d4ebf9dfdc354623156dffc03d414b435ab681b210"
+  },
+  "id": "SOzeSw9Vujp6x3bn",
+  "tags": []
+}

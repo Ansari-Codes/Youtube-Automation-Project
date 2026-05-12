@@ -1,0 +1,167 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/speech",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"model\": \"canopylabs/orpheus-v1-english\", \"input\": \"This is the era, when taste becomes not only the choice, but also personal style and aspects. A person is usually jelous of others if he eats more spicy food. That's why, chinese people are more polite because they eat less spicy food.\", \"voice\": \"austin\", \"response_format\": \"wav\" }",
+        "options": {}
+      },
+      "id": "dc8200b9-9fa9-43bc-bee1-a22092a99a5d",
+      "name": "Generate Audio for Scene",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -720,
+        128
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4HBr9TaeQGMR94hE",
+          "name": "Groq-local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.pexels.com/v1/videos/search?query=\"a man eating food\"&per_page=1&orientation=landscape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -480,
+        -192
+      ],
+      "id": "482f1add-9de1-4c36-933d-12355cc22622",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "fMxScCY19y0jh2Fy",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-tmpfiles.tmpfiles",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        144
+      ],
+      "id": "06d428fa-5998-415a-ac92-68ae4b19470d",
+      "name": "Upload file to tmpfiles"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -896,
+        -64
+      ],
+      "id": "bbdcf550-7128-4d01-b582-7bf4d365a910",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cce2c68d-26b9-45e9-a521-6f1fb28175f8",
+              "name": "audioUrl",
+              "value": "={{ $('Upload file to tmpfiles').item.json.data.url.repalce(\"tmpfiles.org\", \"tmpfiles.org/dl\") }}",
+              "type": "string"
+            },
+            {
+              "id": "ef42e0a2-4baf-45dd-b053-027971777325",
+              "name": "videoUrl",
+              "value": "={{ $json.videos[0].video_files[0].link }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        144,
+        112
+      ],
+      "id": "03dd328f-b7d0-492d-8e2f-520bceb3a97e",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Generate Audio for Scene": {
+      "main": [
+        [
+          {
+            "node": "Upload file to tmpfiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file to tmpfiles": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Audio for Scene",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "af899088-5915-42f8-be2e-5c577222372c",
+  "meta": {
+    "instanceId": "c40d47d2d465b37b48cd58eaf99012d35638d2cfdf0d885509c33be84c71c191"
+  },
+  "id": "RxVizf2bp4KPgp0o",
+  "tags": []
+}

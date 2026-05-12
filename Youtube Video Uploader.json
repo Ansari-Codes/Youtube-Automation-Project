@@ -1,0 +1,571 @@
+{
+  "name": "Youtube Video Uploader",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Describe your video",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Topic"
+            },
+            {
+              "fieldLabel": "Type",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Video"
+                  },
+                  {
+                    "option": "Short"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Duration (mins)",
+              "fieldType": "number"
+            },
+            {
+              "fieldLabel": "Voice",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Fast"
+                  },
+                  {
+                    "option": "Slow"
+                  },
+                  {
+                    "option": "Story telling"
+                  },
+                  {
+                    "option": "Excited"
+                  },
+                  {
+                    "option": "Music"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -304,
+        320
+      ],
+      "id": "19da418e-1930-4e6b-acfe-cd9a4d91df30",
+      "name": "On form submission",
+      "webhookId": "710f08c0-8538-4369-9192-6c3611c19f54"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Topic: {{ $json.Topic }}\nType: {{ $json.Type }}\nDuration:{{ $json['Duration (mins)'] }} mins\nNarrator Style: {{ $json.Voice }}",
+        "options": {
+          "systemMessage": "You are a structured content generator for an automated video pipeline.\n\nYour task is to generate a JSON object describing video scenes.\n\nSTRICT RULES (MANDATORY):\n\n1. Output ONLY valid JSON. No explanations, no markdown, no extra text.\n\n2. The JSON must follow EXACT structure:\n\n{\n  \"hook\": {\n    \"video_prompt\": string,\n    \"transcript\": string,\n    \"duration\": 30,\n    \"clip_query\": string\n  },\n  \"scene1\": {\n    \"video_prompt\": string,\n    \"transcript\": string,\n    \"duration\": 30,\n    \"clip_query\": string\n  },\n  \"scene2\": {\n    \"video_prompt\": string,\n    \"transcript\": string,\n    \"duration\": 30,\n    \"clip_query\": string\n  },\n  \"scene3\": {\n    \"video_prompt\": string,\n    \"transcript\": string,\n    \"duration\": 30,\n    \"clip_query\": string\n  },\n  \"end\": {\n    \"video_prompt\": string,\n    \"transcript\": string,\n    \"duration\": 30,\n    \"clip_query\": string\n  }\n}\n\n3. DURATION RULE (CRITICAL):\n- Each scene MUST be exactly 30 seconds.\n- Do NOT vary durations.\n- Do NOT calculate totals; each block is independent.\n\n4. TRANSCRIPT RULE:\n- Average speaking speed = 2.5 words per second\n- Each transcript should be ~70–80 words per scene\n- Keep natural, engaging, and easy to narrate\n\n5. VIDEO PROMPT RULE:\n- Must be cinematic, descriptive, and visually rich\n- Must clearly describe what is happening in the scene\n- Suitable for AI video generation tools\n\n6. CLIP QUERY RULE:\n- Must be short keyword-based search query\n- Must work for stock video sites (Pexels/Pixabay style)\n- Example: \"rainy city night traffic neon lights\"\n\n7. STRUCTURE RULE:\n- \"hook\" and \"end\" are mandatory\n- Must include scene1, scene2, scene3\n- No skipping scenes\n\n8. QUALITY RULE:\n- Hook must be highly engaging and attention-grabbing\n- End must feel like a conclusion, summary, or call-to-action\n- Scenes must follow a logical narrative flow\n\n9. FAIL CONDITIONS (DO NOT DO):\n- No text outside JSON\n- No comments\n- No placeholders like \"...\"\n- No missing fields\n- No incorrect duration values\n- No extra keys\n\nFINAL GUARANTEE:\n- Every scene duration = 30 seconds exactly\n- Output must be valid JSON only"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -80,
+        320
+      ],
+      "id": "5340a836-3678-4e8a-875b-e098ca186c4c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "return JSON.parse($input.first().json.output)"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        272,
+        320
+      ],
+      "id": "9b6e4fae-c0dd-49be-841f-7904416a3993",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const scenes = $input.first().json;\nconst sceneArray = [];\n\nfor (const key in scenes) {\n  sceneArray.push({\n    sceneName: key,\n    ...scenes[key]\n  });\n}\n\nreturn sceneArray;"
+      },
+      "id": "96cdf75e-f2a7-4d0e-bb67-d68e68c4486f",
+      "name": "Convert Scenes to Array",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "audioUrl",
+              "renameField": true,
+              "outputFieldName": "audioUrls"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "00653317-efc6-4a21-a7e1-880693e58bdc",
+      "name": "Aggregate Audio Files",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        944,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "2395768d-59ba-4896-837a-27c31729f1e2",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        720,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/speech",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"model\": \"canopylabs/orpheus-v1-english\", \"input\": \"{{ $json.transcript }}\", \"voice\": \"austin\", \"response_format\": \"wav\" }",
+        "options": {}
+      },
+      "id": "0b368327-5847-4780-9d15-ce39504ffb8c",
+      "name": "Generate Audio for Scene",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        944,
+        560
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "guNFKwfJrZANSoF5",
+          "name": "Header Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "id": "79592fea-9edc-4d9a-851e-1514bdb68768",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1168,
+        560
+      ],
+      "webhookId": "6741a318-bb33-4967-ae2c-866ca08a933d"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        544
+      ],
+      "id": "98cb5092-b04d-49c7-8fc4-ad21d890db5e",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "TNhXGzS6fgg3bJOb",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return {\n  json: {\n    audioUrl: $json.data.url.replace(\"tmpfiles.org/\", \"tmpfiles.org/dl/\")\n  }\n};"
+      },
+      "id": "e0b3f2b3-81ef-4b3e-acb8-42a4d24646f0",
+      "name": "Extract Audio URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1616,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.pexels.com/v1/videos/search?query=\"{{ $json.clip_query }}\"&per_page=1&orientation={{ (($('On form submission').item.json.Type) == \"Video\") ? \"landscape\" : \"portrait\" }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        944,
+        80
+      ],
+      "id": "b726d389-bc44-4b18-be71-6d7d72a74144",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "h3ce8He5YWXV3Oa2",
+          "name": "pexels"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "f28b0de6-3a15-4f31-afe9-65cdf7c79574",
+      "name": "Loop Over Items1",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        720,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 0.5
+      },
+      "id": "caf044ee-02d1-4d7d-8375-1f8e8be8525e",
+      "name": "Wait1",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1840,
+        160
+      ],
+      "webhookId": "6741a318-bb33-4967-ae2c-866ca08a933d"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "clippedVideoUrl",
+              "renameField": true,
+              "outputFieldName": "videoUrls"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6a1af045-9a9e-4fdc-9cec-656d7c9ba6f8",
+      "name": "Aggregate Video URLs",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        944,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return {\n  json: {\n    videoUrl: $json.videos[0].video_files[0].link,\n    sceneName: $(\"Convert Scenes to Array\").item.json.sceneName,\n    duration: $(\"Convert Scenes to Array\").item.json.duration\n  }\n};"
+      },
+      "id": "fd1d4f93-dfd9-4b79-88f2-43c0f6f51c98",
+      "name": "Extract Video URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return {\n  json: {\n    clippedVideoUrl: $json.url\n  }\n};"
+      },
+      "id": "1ee48950-ad40-4502-bd04-7991de93ea90",
+      "name": "Extract Clipped Video URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1616,
+        80
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-tmpfiles.tmpfiles",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        560
+      ],
+      "id": "b00f8501-ab72-43df-b2bd-0a1522337f35",
+      "name": "Upload file to tmpfiles"
+    },
+    {
+      "parameters": {
+        "operation": "trim",
+        "url": "={{ $json.videoUrl }}",
+        "end": "={{ $json.duration }}"
+      },
+      "type": "@videosailor/n8n-nodes-videosailor.videoSailor",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        80
+      ],
+      "id": "1f3872a6-2567-40af-8435-3c389f1beafc",
+      "name": "VideoSailor",
+      "credentials": {
+        "videoSailorApi": {
+          "id": "hFVOp4QxFwufih6f",
+          "name": "VideoSailor account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Convert Scenes to Array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Scenes to Array": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Audio Files": {
+      "main": [
+        []
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Audio Files",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Audio for Scene",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Audio for Scene": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Upload file to tmpfiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Audio URL": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Video URLs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract Video URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Video URL": {
+      "main": [
+        [
+          {
+            "node": "VideoSailor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Clipped Video URL": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file to tmpfiles": {
+      "main": [
+        [
+          {
+            "node": "Extract Audio URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VideoSailor": {
+      "main": [
+        [
+          {
+            "node": "Extract Clipped Video URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Video URLs": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "bf07d5bf-49c4-443d-aabf-d4d60e022968",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "02c34c568ba02882c471c6d4ebf9dfdc354623156dffc03d414b435ab681b210"
+  },
+  "id": "68zalzEBX3xIaDW9",
+  "tags": []
+}
